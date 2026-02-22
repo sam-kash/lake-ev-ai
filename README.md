@@ -28,13 +28,13 @@ Score = (frequency × 0.6) + (rankScore × 0.25) + (sentimentBonus × 0.15)
 ## Dashboard Screenshots
 
 ### Top Fold — Header, Stats & Brand of the Day
-![Ghost Recon Dashboard - Top Fold](C:/Users/kashy/.gemini/antigravity/brain/6c584698-2294-4faf-b6ad-accf2831b645/dashboard_top_fold_1771789273460.png)
+![Ghost Recon Dashboard - Top Fold](E:/Projects/ai-add-researcher/ss/dashboard_top_fold_1771789273460.png)
 
 ### Mid Section — Leaderboard & Prompt Matrix
-![Ghost Recon Dashboard - Leaderboard](C:/Users/kashy/.gemini/antigravity/brain/6c584698-2294-4faf-b6ad-accf2831b645/dashboard_bottom_fold_1771789275356.png)
+![Ghost Recon Dashboard - Leaderboard](E:Projects/ai-add-researcher/ss/dashboard_bottom_fold_1771789275356.png)
 
 ### Bottom — Score Breakdown & Emerging Brands
-![Ghost Recon Dashboard - Score Breakdown](C:/Users/kashy/.gemini/antigravity/brain/6c584698-2294-4faf-b6ad-accf2831b645/dashboard_bottom_sections_1771789389898.png)
+![Ghost Recon Dashboard - Score Breakdown](E:/rojects/ai-add-researcher/ss/dashboard_bottom_sections_1771789389898.png)
 
 ---
 
