@@ -1,0 +1,62 @@
+[
+  {
+    "id": "pm-01",
+    "vertical": "Project Management",
+    "prompt": "What are the best project management tools in 2026?",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "pm-02",
+    "vertical": "Project Management",
+    "prompt": "Top project management software for remote teams",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "crm-01",
+    "vertical": "CRM",
+    "prompt": "Best CRM software for small businesses in 2026",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "crm-02",
+    "vertical": "CRM",
+    "prompt": "Top customer relationship management platforms",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "cs-01",
+    "vertical": "Cloud Storage",
+    "prompt": "Best cloud storage services for teams in 2026",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "cs-02",
+    "vertical": "Cloud Storage",
+    "prompt": "Top secure cloud storage providers for enterprise",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "ai-01",
+    "vertical": "AI Writing",
+    "prompt": "Best AI writing assistants in 2026",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "ai-02",
+    "vertical": "AI Writing",
+    "prompt": "Top AI content generation tools for marketers",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "dt-01",
+    "vertical": "Design Tools",
+    "prompt": "Top design tools for UI/UX designers in 2026",
+    "lastQueried": "2026-02-22"
+  },
+  {
+    "id": "dt-02",
+    "vertical": "Design Tools",
+    "prompt": "Best graphic design and prototyping software",
+    "lastQueried": "2026-02-22"
+  }
+]
