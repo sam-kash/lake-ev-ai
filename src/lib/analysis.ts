@@ -3,8 +3,7 @@
 // "The Pattern Recon" — Agent 3
 // ============================
 
-import { BrandMention, BrandScore, LLMSource, Vertical } from "./types";
-import { brandMentions, dailySnapshots } from "./data";
+import { BrandMention, BrandScore, LLMSource, Vertical, DailySnapshot } from "./types";
 
 /**
  * Calculate Preference Score for a brand:
@@ -40,7 +39,8 @@ function calculatePreferenceScore(
  * Analyze all brand mentions and produce scored results
  */
 export function analyzeBrands(
-    data: BrandMention[] = brandMentions
+    data: BrandMention[],
+    snapshots: DailySnapshot[] = []
 ): BrandScore[] {
     // Group mentions by brand
     const brandMap = new Map<string, BrandMention[]>();
@@ -74,7 +74,7 @@ export function analyzeBrands(
         ] as LLMSource[];
 
         // Get trend data from daily snapshots
-        const trend = dailySnapshots.map(
+        const trend = snapshots.map(
             (snap) => snap.brandScores[brand] || 0
         );
 
@@ -115,33 +115,36 @@ export function analyzeBrands(
  * Get the Brand of the Day (highest scoring brand)
  */
 export function getBrandOfTheDay(
-    data: BrandMention[] = brandMentions
+    data: BrandMention[],
+    snapshots: DailySnapshot[] = []
 ): BrandScore {
-    return analyzeBrands(data)[0];
+    return analyzeBrands(data, snapshots)[0];
 }
 
 /**
  * Get recurring winners
  */
 export function getRecurringWinners(
-    data: BrandMention[] = brandMentions
+    data: BrandMention[],
+    snapshots: DailySnapshot[] = []
 ): BrandScore[] {
-    return analyzeBrands(data).filter((b) => b.isRecurringWinner);
+    return analyzeBrands(data, snapshots).filter((b) => b.isRecurringWinner);
 }
 
 /**
  * Get emerging niche brands
  */
 export function getEmergingBrands(
-    data: BrandMention[] = brandMentions
+    data: BrandMention[],
+    snapshots: DailySnapshot[] = []
 ): BrandScore[] {
-    return analyzeBrands(data).filter((b) => b.isEmergingBrand);
+    return analyzeBrands(data, snapshots).filter((b) => b.isEmergingBrand);
 }
 
 /**
  * Build prompt matrix: for each prompt × LLM, which brand ranked #1
  */
-export function buildPromptMatrix(data: BrandMention[] = brandMentions) {
+export function buildPromptMatrix(data: BrandMention[]) {
     const matrix: Record<
         string,
         Record<LLMSource, { brand: string; rank: number } | null>
@@ -181,6 +184,3 @@ export function buildPromptMatrix(data: BrandMention[] = brandMentions) {
 /**
  * Get daily snapshots for trending chart
  */
-export function getDailyTrends() {
-    return dailySnapshots;
-}

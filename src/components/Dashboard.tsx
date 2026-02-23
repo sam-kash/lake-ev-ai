@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import useSWR from "swr";
 import BrandOfTheDay from "./BrandOfTheDay";
 import StatsBar from "./StatsBar";
 import Leaderboard from "./Leaderboard";
@@ -12,22 +13,54 @@ import {
     getBrandOfTheDay,
     getRecurringWinners,
     buildPromptMatrix,
-    getDailyTrends,
 } from "@/lib/analysis";
 import { Radar, Clock, Shield } from "lucide-react";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function Dashboard() {
-    const brands = analyzeBrands();
-    const brandOfTheDay = getBrandOfTheDay();
-    const recurringWinners = getRecurringWinners();
-    const promptMatrix = buildPromptMatrix();
-    const dailyTrends = getDailyTrends();
+    const { data, error, isLoading } = useSWR("/api/brands", fetcher, {
+        refreshInterval: 300000, // 5 minutes
+    });
+
+    if (error) return <div className="p-8 text-center text-red-500">Failed to load brand intelligence data.</div>;
+    if (isLoading || !data) return (
+        <div className="flex min-h-screen items-center justify-center bg-[#06060a]">
+            <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+        </div>
+    );
+
+    const { mentions = [], dailySnapshots = [] } = data;
+
+    // Handle case where DB is completely empty
+    if (mentions.length === 0) {
+        return (
+            <div className="flex min-h-screen flex-col items-center justify-center bg-[#06060a] p-8 text-center">
+                <Radar className="mb-4 h-16 w-16 text-cyan-500 animate-pulse" />
+                <h2 className="text-2xl font-bold text-white mb-2">No Intel Found</h2>
+                <p className="text-slate-400">The Antigravity Browser Agent has not populated the database yet.</p>
+            </div>
+        );
+    }
+
+    const brands = analyzeBrands(mentions, dailySnapshots);
+    const brandOfTheDay = getBrandOfTheDay(mentions, dailySnapshots);
+    const recurringWinners = getRecurringWinners(mentions, dailySnapshots);
+    const promptMatrix = buildPromptMatrix(mentions);
+    const dailyTrends = dailySnapshots;
     const topBrandNames = brands.slice(0, 6).map((b) => b.brand);
     const verticals = [...new Set(brands.map((b) => b.vertical))];
 
     return (
         <div className="min-h-screen bg-[#06060a]">
-            {/* Ambient background effects */}
+            {/* Hero Brand Background Effects */}
+            {brandOfTheDay && (
+                <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden mix-blend-screen opacity-30">
+                    <div className="absolute inset-0 bg-[url('/hero-bg.webp')] bg-cover bg-center brightness-150 contrast-125 saturate-200 transition-all duration-1000 ease-in-out"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#06060a]/50 to-[#06060a]"></div>
+                </div>
+            )}
+
             <div className="pointer-events-none fixed inset-0 z-0">
                 <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-cyan-500/[0.03] blur-[120px]" />
                 <div className="absolute right-1/4 top-1/3 h-[400px] w-[400px] rounded-full bg-violet-500/[0.03] blur-[120px]" />

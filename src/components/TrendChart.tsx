@@ -38,15 +38,15 @@ function CustomTooltip({
     active,
     payload,
     label,
-}: TooltipProps<number, string>) {
+}: any) {
     if (!active || !payload) return null;
 
     return (
         <div className="rounded-xl border border-white/10 bg-[#0d0d14]/95 px-4 py-3 shadow-2xl backdrop-blur-xl">
             <p className="mb-2 text-xs font-medium text-white/40">{label}</p>
             {payload
-                .sort((a, b) => (b.value || 0) - (a.value || 0))
-                .map((entry) => (
+                .sort((a: any, b: any) => (b.value || 0) - (a.value || 0))
+                .map((entry: any) => (
                     <div
                         key={entry.dataKey}
                         className="flex items-center justify-between gap-4 text-xs"
