@@ -31,10 +31,10 @@ const llmColors: Record<LLMSource, string> = {
     Gemini: "bg-violet-500/20 text-violet-400 border-violet-500/30",
 };
 
-type SortKey = "preferenceScore" | "frequency" | "avgRank" | "brand";
+type SortKey = "avs" | "frequency" | "avgRank" | "brand" | "tsov";
 
 export default function Leaderboard({ brands }: LeaderboardProps) {
-    const [sortKey, setSortKey] = useState<SortKey>("preferenceScore");
+    const [sortKey, setSortKey] = useState<SortKey>("avs");
     const [sortAsc, setSortAsc] = useState(false);
     const [filterVertical, setFilterVertical] = useState<Vertical | "All">("All");
 
@@ -82,7 +82,7 @@ export default function Leaderboard({ brands }: LeaderboardProps) {
                 <div className="flex items-center gap-2">
                     <Trophy className="h-4 w-4 text-amber-400" />
                     <h3 className="text-sm font-semibold text-white">
-                        Brand Leaderboard
+                        AI Visibility Leaderboard
                     </h3>
                 </div>
                 <div className="flex items-center gap-1">
@@ -124,10 +124,21 @@ export default function Leaderboard({ brands }: LeaderboardProps) {
                             </th>
                             <th
                                 className="cursor-pointer px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white/30 hover:text-white/50"
-                                onClick={() => handleSort("preferenceScore")}
+                                onClick={() => handleSort("avs")}
                             >
                                 <span className="flex items-center gap-1">
-                                    Score <SortIcon column="preferenceScore" />
+                                    AVS <SortIcon column="avs" />
+                                </span>
+                            </th>
+                            <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">
+                                Δ
+                            </th>
+                            <th
+                                className="cursor-pointer px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-white/30 hover:text-white/50"
+                                onClick={() => handleSort("tsov")}
+                            >
+                                <span className="flex items-center gap-1">
+                                    TSOV% <SortIcon column="tsov" />
                                 </span>
                             </th>
                             <th
@@ -186,21 +197,30 @@ export default function Leaderboard({ brands }: LeaderboardProps) {
                                         <div className="h-1.5 w-16 overflow-hidden rounded-full bg-white/[0.06]">
                                             <div
                                                 className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-violet-500 transition-all duration-700"
-                                                style={{
-                                                    width: `${brand.preferenceScore}%`,
-                                                }}
+                                                style={{ width: `${brand.avs}%` }}
                                             />
                                         </div>
                                         <span className="font-mono text-xs font-semibold text-white">
-                                            {brand.preferenceScore}
+                                            {brand.avs}
                                         </span>
                                     </div>
+                                </td>
+                                <td className="px-3 py-3">
+                                    <span className={`font-mono text-xs font-semibold ${brand.avsDelta > 0 ? "text-emerald-400" :
+                                            brand.avsDelta < 0 ? "text-rose-400" : "text-white/20"
+                                        }`}>
+                                        {brand.avsDelta > 0 ? "▲" : brand.avsDelta < 0 ? "▼" : "—"}
+                                        {brand.avsDelta !== 0 ? Math.abs(brand.avsDelta) : ""}
+                                    </span>
+                                </td>
+                                <td className="px-3 py-3 font-mono text-xs text-white/60">
+                                    {brand.tsov}%
                                 </td>
                                 <td className="px-3 py-3 font-mono text-xs text-white/60">
                                     {brand.frequency}
                                 </td>
                                 <td className="px-3 py-3 font-mono text-xs text-white/60">
-                                    {brand.avgRank}
+                                    #{brand.avgRank}
                                 </td>
                                 <td className="px-3 py-3">
                                     <div className="flex gap-1">

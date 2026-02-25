@@ -8,6 +8,9 @@ import Leaderboard from "./Leaderboard";
 import TrendChart from "./TrendChart";
 import PromptMatrix from "./PromptMatrix";
 import ScoreBreakdown from "./ScoreBreakdown";
+import GapIntelligence from "./GapIntelligence";
+import NarrativeCard from "./NarrativeCard";
+import AuditDownload from "./AuditDownload";
 import {
     analyzeBrands,
     getBrandOfTheDay,
@@ -15,6 +18,7 @@ import {
     buildPromptMatrix,
 } from "@/lib/analysis";
 import { Radar, Clock, Shield } from "lucide-react";
+import { BrandScore } from "@/lib/types";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -30,10 +34,10 @@ export default function Dashboard() {
         </div>
     );
 
-    const { mentions = [], dailySnapshots = [] } = data;
+    const { mentions = [], brandScores: apiBrandScores = [], dailySnapshots = [] } = data;
 
     // Handle case where DB is completely empty
-    if (mentions.length === 0) {
+    if (mentions.length === 0 && apiBrandScores.length === 0) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-[#06060a] p-8 text-center">
                 <Radar className="mb-4 h-16 w-16 text-cyan-500 animate-pulse" />
@@ -43,13 +47,16 @@ export default function Dashboard() {
         );
     }
 
-    const brands = analyzeBrands(mentions, dailySnapshots);
-    const brandOfTheDay = getBrandOfTheDay(mentions, dailySnapshots);
+    // Use API brand scores if available (includes AVS, TSOV, etc.) otherwise compute locally
+    const brands = apiBrandScores.length > 0
+        ? apiBrandScores
+        : analyzeBrands(mentions, dailySnapshots);
+    const brandOfTheDay = brands[0] || getBrandOfTheDay(mentions, dailySnapshots);
     const recurringWinners = getRecurringWinners(mentions, dailySnapshots);
     const promptMatrix = buildPromptMatrix(mentions);
     const dailyTrends = dailySnapshots;
-    const topBrandNames = brands.slice(0, 6).map((b) => b.brand);
-    const verticals = [...new Set(brands.map((b) => b.vertical))];
+    const topBrandNames = brands.slice(0, 6).map((b: BrandScore) => b.brand);
+    const verticals = [...new Set(brands.map((b: BrandScore) => b.vertical))];
 
     return (
         <div className="min-h-screen bg-[#06060a]">
@@ -95,7 +102,7 @@ export default function Dashboard() {
                                 </span>
                             </h1>
                             <p className="text-xs text-white/30">
-                                AI Recommendation Pattern Tracker · 2026 LLM Landscape
+                                AI Recommendation Intelligence Platform · 2026
                             </p>
                         </div>
                     </div>
@@ -103,7 +110,7 @@ export default function Dashboard() {
                     <div className="flex flex-wrap items-center gap-4 text-xs text-white/20">
                         <span className="flex items-center gap-1.5">
                             <Clock className="h-3 w-3" />
-                            Last scan: Feb 22, 2026 · 08:00 IST
+                            Last scan: {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </span>
                         <span className="flex items-center gap-1.5">
                             <Shield className="h-3 w-3" />
@@ -124,7 +131,7 @@ export default function Dashboard() {
                     {/* Stats Bar */}
                     <StatsBar
                         totalBrands={brands.length}
-                        totalMentions={brands.reduce((sum, b) => sum + b.frequency, 0)}
+                        totalMentions={brands.reduce((sum: number, b: BrandScore) => sum + b.frequency, 0)}
                         verticals={verticals.length}
                         recurringWinners={recurringWinners.length}
                     />
@@ -159,9 +166,9 @@ export default function Dashboard() {
 
                             <div className="space-y-3">
                                 {brands
-                                    .filter((b) => b.isEmergingBrand)
+                                    .filter((b: BrandScore) => b.isEmergingBrand)
                                     .slice(0, 6)
-                                    .map((brand) => (
+                                    .map((brand: BrandScore) => (
                                         <div
                                             key={brand.brand}
                                             className="group flex items-center justify-between rounded-xl p-3 transition-all hover:bg-white/[0.04]"
@@ -176,22 +183,31 @@ export default function Dashboard() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-mono text-sm font-semibold text-emerald-400">
-                                                    {brand.preferenceScore}
+                                                    AVS {brand.avs}
                                                 </p>
                                                 <p className="text-[10px] text-white/30">
-                                                    {brand.llmCoverage.length} LLM
-                                                    {brand.llmCoverage.length > 1 ? "s" : ""}
+                                                    TSOV {brand.tsov}%
                                                 </p>
                                             </div>
                                         </div>
                                     ))}
 
-                                {brands.filter((b) => b.isEmergingBrand).length === 0 && (
+                                {brands.filter((b: BrandScore) => b.isEmergingBrand).length === 0 && (
                                     <p className="py-8 text-center text-xs text-white/20">
                                         No emerging brands detected in current scan
                                     </p>
                                 )}
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Gap Intelligence + Narrative + Audit */}
+                    <div className="col-span-full grid grid-cols-1 gap-4 lg:grid-cols-3">
+                        <div className="lg:col-span-2">
+                            <GapIntelligence />
+                        </div>
+                        <div className="flex flex-col gap-4">
+                            <AuditDownload />
                         </div>
                     </div>
                 </div>

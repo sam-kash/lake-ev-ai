@@ -4,7 +4,7 @@ import React from "react";
 import GlassCard from "./ui/GlassCard";
 import AnimatedCounter from "./ui/AnimatedCounter";
 import { BrandScore } from "@/lib/types";
-import { PieChart, BarChart3, Target } from "lucide-react";
+import { BarChart3, Target, Cpu } from "lucide-react";
 
 interface ScoreBreakdownProps {
     brands: BrandScore[];
@@ -16,24 +16,14 @@ export default function ScoreBreakdown({ brands }: ScoreBreakdownProps) {
     return (
         <GlassCard glow="rose" padding="md" className="col-span-full lg:col-span-1">
             <div className="mb-4 flex items-center gap-2">
-                <PieChart className="h-4 w-4 text-rose-400" />
-                <h3 className="text-sm font-semibold text-white">Score Breakdown</h3>
+                <Cpu className="h-4 w-4 text-rose-400" />
+                <h3 className="text-sm font-semibold text-white">AVS Breakdown</h3>
                 <span className="text-xs text-white/30">Top 5</span>
             </div>
 
             <div className="space-y-4">
                 {topBrands.map((brand, idx) => {
-                    const total =
-                        brand.sentimentBreakdown.positive +
-                        brand.sentimentBreakdown.neutral +
-                        brand.sentimentBreakdown.negative;
-                    const posPercent = Math.round(
-                        (brand.sentimentBreakdown.positive / total) * 100
-                    );
-                    const neuPercent = Math.round(
-                        (brand.sentimentBreakdown.neutral / total) * 100
-                    );
-
+                    const c = brand.avsComponents;
                     return (
                         <div
                             key={brand.brand}
@@ -48,43 +38,44 @@ export default function ScoreBreakdown({ brands }: ScoreBreakdownProps) {
                                         {brand.brand}
                                     </span>
                                 </div>
-                                <AnimatedCounter
-                                    value={brand.preferenceScore}
-                                    className="font-mono text-lg font-bold text-white"
-                                />
+                                <div className="flex items-center gap-2">
+                                    <span className={`font-mono text-[10px] ${brand.avsDelta > 0 ? "text-emerald-400" :
+                                            brand.avsDelta < 0 ? "text-rose-400" : "text-white/20"
+                                        }`}>
+                                        {brand.avsDelta > 0 ? "▲" : brand.avsDelta < 0 ? "▼" : ""}
+                                        {brand.avsDelta !== 0 ? Math.abs(brand.avsDelta) : ""}
+                                    </span>
+                                    <AnimatedCounter
+                                        value={brand.avs}
+                                        className="font-mono text-lg font-bold text-white"
+                                    />
+                                </div>
                             </div>
 
-                            {/* Score components bar */}
-                            <div className="mb-2 flex gap-0.5 overflow-hidden rounded-full">
-                                <div
-                                    className="h-1.5 rounded-l-full bg-emerald-500 transition-all duration-500"
-                                    style={{ width: `${posPercent}%` }}
-                                    title={`Positive: ${posPercent}%`}
-                                />
-                                <div
-                                    className="h-1.5 bg-amber-500 transition-all duration-500"
-                                    style={{ width: `${neuPercent}%` }}
-                                    title={`Neutral: ${neuPercent}%`}
-                                />
-                                <div
-                                    className="h-1.5 rounded-r-full bg-rose-500 transition-all duration-500"
-                                    style={{ width: `${100 - posPercent - neuPercent}%` }}
-                                    title={`Negative: ${100 - posPercent - neuPercent}%`}
-                                />
+                            {/* AVS 4-component stacked bar */}
+                            <div className="mb-1 flex gap-0.5 overflow-hidden rounded-full">
+                                <div className="h-1.5 rounded-l-full bg-cyan-500 transition-all duration-500" style={{ width: `${c.frequencyScore * 0.4}%` }} title={`Frequency: ${c.frequencyScore}`} />
+                                <div className="h-1.5 bg-violet-500 transition-all duration-500" style={{ width: `${c.positionScore * 0.3}%` }} title={`Position: ${c.positionScore}`} />
+                                <div className="h-1.5 bg-emerald-500 transition-all duration-500" style={{ width: `${c.sentimentScore * 0.2}%` }} title={`Sentiment: ${c.sentimentScore}`} />
+                                <div className="h-1.5 rounded-r-full bg-amber-500 transition-all duration-500" style={{ width: `${c.crossLLMScore * 0.1}%` }} title={`Cross-LLM: ${c.crossLLMScore}`} />
+                            </div>
+                            <div className="mb-2 flex gap-3 text-[9px] text-white/25">
+                                <span className="text-cyan-400/60">Freq {c.frequencyScore}</span>
+                                <span className="text-violet-400/60">Pos {c.positionScore}</span>
+                                <span className="text-emerald-400/60">Sent {c.sentimentScore}</span>
+                                <span className="text-amber-400/60">xLLM {c.crossLLMScore}</span>
                             </div>
 
-                            {/* Metrics */}
-                            <div className="flex items-center gap-4 text-[10px]">
-                                <span className="flex items-center gap-1 text-white/30">
-                                    <BarChart3 className="h-3 w-3" />
-                                    Mentions: {brand.frequency}
+                            {/* Per-LLM mini breakdown */}
+                            <div className="flex gap-3 text-[9px]">
+                                <span className="text-emerald-400/70">GPT {brand.avsBreakdown.chatgpt}</span>
+                                <span className="text-violet-400/70">GEM {brand.avsBreakdown.gemini}</span>
+                                <span className="text-blue-400/70">PPX {brand.avsBreakdown.perplexity}</span>
+                                <span className="ml-auto flex items-center gap-1 text-white/30">
+                                    <BarChart3 className="h-3 w-3" />{brand.frequency}
                                 </span>
                                 <span className="flex items-center gap-1 text-white/30">
-                                    <Target className="h-3 w-3" />
-                                    Avg Rank: {brand.avgRank}
-                                </span>
-                                <span className="text-emerald-400/60">
-                                    ↑ {posPercent}% positive
+                                    <Target className="h-3 w-3" />#{brand.avgRank}
                                 </span>
                             </div>
                         </div>
@@ -93,15 +84,18 @@ export default function ScoreBreakdown({ brands }: ScoreBreakdownProps) {
             </div>
 
             {/* Legend */}
-            <div className="mt-3 flex items-center justify-center gap-4 border-t border-white/[0.06] pt-3">
-                <span className="flex items-center gap-1.5 text-[10px] text-white/30">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Positive
+            <div className="mt-3 flex items-center justify-center gap-3 border-t border-white/[0.06] pt-3">
+                <span className="flex items-center gap-1.5 text-[9px] text-white/25">
+                    <span className="h-2 w-2 rounded-full bg-cyan-500" /> Frequency ×0.4
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-white/30">
-                    <span className="h-2 w-2 rounded-full bg-amber-500" /> Neutral
+                <span className="flex items-center gap-1.5 text-[9px] text-white/25">
+                    <span className="h-2 w-2 rounded-full bg-violet-500" /> Position ×0.3
                 </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-white/30">
-                    <span className="h-2 w-2 rounded-full bg-rose-500" /> Negative
+                <span className="flex items-center gap-1.5 text-[9px] text-white/25">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" /> Sentiment ×0.2
+                </span>
+                <span className="flex items-center gap-1.5 text-[9px] text-white/25">
+                    <span className="h-2 w-2 rounded-full bg-amber-500" /> xLLM ×0.1
                 </span>
             </div>
         </GlassCard>

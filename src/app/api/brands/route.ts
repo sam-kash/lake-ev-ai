@@ -1,51 +1,70 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { analyzeBrands } from "@/lib/analysis";
+import { BrandMention, DailySnapshot, AVSSnapshot } from "@/lib/types";
 
 export async function GET() {
     try {
-        // 1. Fetch brand rankings from Supabase
-        const { data: mentions, error: dbError } = await supabase
-            .from('brand_rankings')
-            .select('*')
-            .order('date', { ascending: false });
+        const { data: mentions, error } = await supabase
+            .from("brand_rankings")
+            .select("*")
+            .order("date", { ascending: false });
 
-        if (dbError) {
-            console.error("Supabase Error:", dbError);
-        }
+        if (error) console.error("[/api/brands] Supabase error:", error);
 
-        // For local dev without initialized Supabase, fallback to empty array if no data
-        const safeMentions = mentions || [];
+        const safeMentions: BrandMention[] = (mentions || []).map((m: Record<string, unknown>) => ({
+            id: m.id as string,
+            brand: m.brand as string,
+            vertical: m.vertical as BrandMention["vertical"],
+            llm: m.llm as BrandMention["llm"],
+            rank: m.rank as number,
+            citedReason: m.cited_reason as string,
+            date: m.date as string,
+            sentiment: m.sentiment as BrandMention["sentiment"],
+        }));
 
-        // Grouping mentions by date for historical snapshots if needed
-        // In a real scenario, you'd aggregate this or create a view in Supabase.
-        // For this rewrite, we will return mentions and dynamically generate the daily snapshots on the frontend or backend.
+        // Build daily snapshots for trend charts
+        const snapshots: DailySnapshot[] = [];
+        const dateMap = new Map<string, Record<string, number>>();
+        safeMentions.forEach((m) => {
+            const entry = dateMap.get(m.date) || {};
+            entry[m.brand] = (entry[m.brand] || 0) + Math.max(0, 100 - m.rank * 10);
+            dateMap.set(m.date, entry);
+        });
+        dateMap.forEach((brandScores, date) => snapshots.push({ date, brandScores }));
+        snapshots.sort((a, b) => a.date.localeCompare(b.date));
 
-        const snapshots: any[] = [];
+        // Load AVS snapshots for delta computation
+        const { data: avsRows } = await supabase
+            .from("avs_snapshots")
+            .select("*")
+            .order("snapshot_date", { ascending: true });
 
-        // Simplistic snapshot builder from recent 7 days (mock logic for missing data)
-        if (safeMentions.length > 0) {
-            const dates = [...new Set(safeMentions.map(m => m.date))];
-            dates.forEach(date => {
-                const brandsForDate = safeMentions.filter(m => m.date === date);
-                const scores: Record<string, number> = {};
-                brandsForDate.forEach(m => {
-                    // mock score logic, in reality we map to actual scores
-                    scores[m.brand] = (scores[m.brand] || 0) + (100 - (m.rank * 10));
-                });
-                snapshots.push({
-                    date,
-                    brandScores: scores
-                });
-            });
-        }
+        const avsSnapshots: AVSSnapshot[] = (avsRows || []).map((r: Record<string, unknown>) => ({
+            brand: r.brand as string,
+            vertical: r.vertical as AVSSnapshot["vertical"],
+            snapshotDate: r.snapshot_date as string,
+            avs: r.avs as number,
+            weightedAvs: r.weighted_avs as number,
+            tsov: r.tsov as number,
+            avsBreakdown: {
+                chatgpt: r.avs_chatgpt as number,
+                gemini: r.avs_gemini as number,
+                perplexity: r.avs_perplexity as number,
+            },
+            frequency: r.frequency as number,
+            avgRank: r.avg_rank as number,
+        }));
+
+        const brandScores = analyzeBrands(safeMentions, snapshots, avsSnapshots);
 
         return NextResponse.json({
             mentions: safeMentions,
-            dailySnapshots: snapshots.reverse()
+            brandScores,
+            dailySnapshots: snapshots,
         });
-
     } catch (error) {
-        console.error("API Route Error:", error);
-        return NextResponse.json({ error: "Failed to fetch brand data from Supabase DB" }, { status: 500 });
+        console.error("[/api/brands] Error:", error);
+        return NextResponse.json({ error: "Failed to fetch brand data" }, { status: 500 });
     }
 }

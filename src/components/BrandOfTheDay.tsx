@@ -62,7 +62,7 @@ export default function BrandOfTheDay({ brand }: BrandOfTheDayProps) {
                                 stroke="url(#scoreGradient)"
                                 strokeWidth="6"
                                 strokeLinecap="round"
-                                strokeDasharray={`${(brand.preferenceScore / 100) * 327} 327`}
+                                strokeDasharray={`${(brand.avs / 100) * 327} 327`}
                                 className="transition-all duration-1000"
                             />
                             <defs>
@@ -74,10 +74,16 @@ export default function BrandOfTheDay({ brand }: BrandOfTheDayProps) {
                         </svg>
                         <div className="text-center">
                             <AnimatedCounter
-                                value={brand.preferenceScore}
+                                value={brand.avs}
                                 className="font-mono text-4xl font-bold text-white md:text-5xl"
                             />
-                            <p className="mt-1 text-xs text-white/40">Preference Score</p>
+                            <p className="mt-1 text-[10px] text-white/40">AI Visibility Score</p>
+                            {brand.avsDelta !== 0 && (
+                                <p className={`mt-0.5 text-xs font-semibold ${brand.avsDelta > 0 ? "text-emerald-400" : "text-rose-400"
+                                    }`}>
+                                    {brand.avsDelta > 0 ? "▲" : "▼"}{Math.abs(brand.avsDelta)}
+                                </p>
+                            )}
                         </div>
                     </div>
 
